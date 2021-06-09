@@ -27,9 +27,14 @@ export default {
   data() {
     return {
       response: null,
+      token: null,
       chartOptionsBar: {}
     };
   },
+   created(){
+     this.token = this.$route.params.tokenId
+     console.log(this.$route.params.tokenId)
+   },
   components: {
     VueInstantLoadingSpinner
   },
@@ -43,10 +48,13 @@ export default {
       const apiResponse = await PostsService.getCurrentStanding();
       console.log("%%%%%%%%%%%%%%%%%%%%%%%%%");
       console.log(apiResponse);
-      console.log(apiResponse.data[0].Record);
+      console.log(apiResponse.data);
+      var tmpArray = apiResponse.data.slice(1,-2).split(",")
+      
+      console.log(tmpArray);
       let currentStanding = [];
       for (let i = 0; i < apiResponse.data.length; i++) {
-        currentStanding[i] = apiResponse.data[i].Record.count;
+        currentStanding[i] = tmpArray[i];
       }
       console.log("curStanding: ");
       console.log(currentStanding);
@@ -54,11 +62,11 @@ export default {
       this.chartOptionsBar = {
         xAxis: {
           data: [
-            "Democrat",
-            "Green",
-            "Independent",
-            "Libertarian",
-            "Republican"
+            "후보자1",
+            "후보자2",
+            "후보자3",
+            "후보자4",
+            "후보자5"
           ]
         },
         yAxis: {
@@ -71,7 +79,7 @@ export default {
           }
         ],
         title: {
-          text: "2020 ",
+          text: "결과: ",
           x: "center",
           textStyle: {
             fontSize: 24

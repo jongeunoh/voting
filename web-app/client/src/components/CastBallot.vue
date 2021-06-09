@@ -1,20 +1,20 @@
 <template>
   <div class="posts">
     <h1>Cast Ballot</h1>
-    <input type="radio" id="one" value="Republican" v-model="picked">
-    <label for="one">Donald Trump (Republican)</label>
+    <input type="radio" id="one" value="후보자1" v-model="picked">
+    <label for="one">후보자1</label>
     <br>
-    <input type="radio" id="two" value="Democrat" v-model="picked">
-    <label for="two">TBA (Democratic)</label>
+    <input type="radio" id="two" value="후보자2" v-model="picked">
+    <label for="two">후보자2</label>
     <br>
-    <input type="radio" id="two" value="Green" v-model="picked">
-    <label for="two">TBA (Green Party)</label>
+    <input type="radio" id="three" value="후보자3" v-model="picked">
+    <label for="three">후보자3</label>
     <br>
-    <input type="radio" id="two" value="Independent" v-model="picked">
-    <label for="two">TBA (Independent)</label>
+    <input type="radio" id="four" value="후보자4" v-model="picked">
+    <label for="four">후보자4</label>
     <br>
-    <input type="radio" id="two" value="Libertarian" v-model="picked">
-    <label for="two">TBA (Libertarian)</label>
+    <input type="radio" id="five" value="후보자5" v-model="picked">
+    <label for="five">후보자5</label>
     <br>
     <br>
     <span v-if="picked">
@@ -25,11 +25,7 @@
     <br>
     <!--span><b>{{ response }}</b></span><br /-->
     <form v-on:submit="castBallot">
-      <!-- <input type="text" value="2sww593dc034wb2twdk91r" v-model="input.electionId"  >
-      <br>-->
-      <input type="text" v-model="input.voterId" placeholder="Enter VoterId">
-      <br>
-      <input type="submit" value="Cast Vote">
+      <input type="submit" value="투표하기">
       <br>
     </form>
 
@@ -52,25 +48,35 @@ export default {
     return {
       input: {},
       picked: null,
-      response: null
+      response: null,
+      token: null
     };
+  },
+  created(){
+    this.token = this.$route.params.tokenId
+    console.log("this.$route.params.tokenId ${this.$route.params.tokenId}")
   },
   components: {
     VueInstantLoadingSpinner
   },
   methods: {
+    clickHandler(token){
+      console.log("Oh, that's nice. It's gotten ${token} got! :) " );
+      this.token = token;
+    },
+
     async castBallot() {
       await this.runSpinner();
 
-      const electionRes = await PostsService.queryWithQueryString('election');
+      // const electionRes = await PostsService.queryWithQueryString('election');
 
-      let electionId = electionRes.data[0].Key;
+      // let electionId = electionRes.data[0].Key;
 
       console.log("picked: ");
       console.log(this.picked);
-      console.log("voterId: ");
-      console.log(this.input.voterId);
-      this.response = null;
+      // console.log("voterId: ");
+      // console.log(this.input.voterId);
+      // this.response = null;
 
  
 
@@ -78,22 +84,24 @@ export default {
       if (this.picked === null ) {
         console.log('this.picked === null')
 
-        let response = "You have to pick a party to vote for!";
+        let response = "후보자를 투표해주세요";
         this.response = response;
         await this.hideSpinner();
       
-      } else if (this.input.voterId === undefined) {
-        console.log('this.voterId === undefined')
+      // } else if (this.input.voterId === undefined) {
+      //   console.log('this.voterId === undefined')
 
-        let response = "You have to enter your voterId to cast a vote!";
-        this.response = response;
-        await this.hideSpinner();
+      //   let response = "투표를 진행하기 위해 투표자 코드를 입력하세요";
+      //   this.response = response;
+      //   await this.hideSpinner();
 
-      } else {
-
+      } 
+      else {
+          console.log("token in castBallot: ");
+          console.log(this.token);
         const apiResponse = await PostsService.castBallot(
-          electionId,
-          this.input.voterId,
+          null,
+          this.token,
           this.picked
         );
 
@@ -104,14 +112,14 @@ export default {
           this.response= apiResponse.data.error;
           await this.hideSpinner();
         } else if (apiResponse.data.message) {
-          this.response= `Could not find voter with voterId ${this.input.voterId}
-            in the state. Make sure you are entering a valid voterId`;
+          this.response= apiResponse.data.message
+          console.log(this.response);
+          this.$router.push({name: "GetCurrentStanding",params: {tokenId: this.token}});
           await this.hideSpinner();
         } 
         else {
-          let response = `Successfully recorded vote for ${this.picked} party 
-            for voter with voterId ${apiResponse.data.voterId}. Thanks for 
-            doing your part and voting!`;
+          let response = `${this.picked} 가 정상적으로 투표되었습니다. 
+            투표자 코드 ${apiResponse.data.voterId} 님 투표 감사합니다.`;
 
           this.response = response;
 
